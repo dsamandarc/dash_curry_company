@@ -4,7 +4,7 @@ import streamlit as st
 import datetime
 from PIL import Image
 import matplotlib
-
+matplotlib.use('agg')
 
 st.set_page_config(page_title='Delivery Drivers Overview', page_icon='🛵', layout='wide')
 
