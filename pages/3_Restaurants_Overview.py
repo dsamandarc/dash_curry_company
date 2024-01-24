@@ -10,7 +10,7 @@ from PIL import Image
 from haversine import haversine
 import numpy as np
 import matplotlib
-
+matplotlib.use('agg')
 st.set_page_config(page_title="Restaurant's Overview", page_icon='🍽️', layout='wide')
 
 
