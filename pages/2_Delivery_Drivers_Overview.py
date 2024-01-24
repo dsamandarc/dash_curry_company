@@ -15,9 +15,10 @@ st.set_page_config(page_title='Delivery Drivers Overview', page_icon='🛵', lay
 
 def top_delivers(df1, top_asc):
     df2 = (df1.loc[:, ['Delivery_person_ID', 'City', 'Time_taken(min)']]
-           .groupby(['City', 'Delivery_person_ID'])
+           .rename(columns={'Time_taken(min)': 'Time Taken (min)', 'Delivery_person_ID': 'Delivery Person ID'})
+           .groupby(['City', 'Delivery Person ID'])
            .mean()
-           .sort_values(['City', 'Time_taken(min)'], ascending=top_asc)
+           .sort_values(['City', 'Time Taken (min)'], ascending=top_asc)
            .reset_index())
 
     df_aux01 = df2.loc[df2['City'] == 'Metropolitian', :].head(10)
@@ -154,24 +155,36 @@ with st.container():
         personnel_ratings = (df1.loc[:, ['Delivery_person_ID', 'Delivery_person_Ratings']]
                              .groupby('Delivery_person_ID')
                              .mean()
-                             .reset_index())
-        st.dataframe(personnel_ratings)
-    with col2:
-        st.markdown('##### Average Rating & Standard Deviation by Traffic Type')
-        avg_std = (df1.loc[:, ['Delivery_person_Ratings', 'Road_traffic_density']]
-                   .groupby('Road_traffic_density')
-                   .agg({'Delivery_person_Ratings': ['mean', 'std']}))
-        avg_std.columns = ['delivery_mean', 'delivery_std']
-        avg_std = avg_std.reset_index()
-        st.dataframe(avg_std)
+                             .reset_index()
+                             .round(2))
+        personnel_ratings.columns = ['Delivery Person ID', 'Average Rating']
 
-        st.markdown('##### Average Rating & Standard Deviation by Weather Conditions')
+        st.dataframe(personnel_ratings, hide_index=True, height=500)
+    with col2:
+        st.markdown('##### Average & Standard Deviation Ratings by Traffic Type')
+        avg_std = (df1.loc[:, ['Delivery_person_Ratings', 'Road_traffic_density']]
+                   .rename(columns={'Road_traffic_density': 'Road Traffic Density'})
+                   .groupby('Road Traffic Density')
+                   .agg({'Delivery_person_Ratings': ['mean', 'std']})
+                   .round(2))
+        avg_std.columns = ['Average', 'Standard Deviation']
+        avg_std = avg_std.reset_index()
+        avg_std_styled = avg_std.style.background_gradient(cmap='Blues').format(
+            {'Average': '{:.2f}', 'Standard Deviation': '{:.2f}'})
+        st.dataframe(avg_std_styled, hide_index=True)
+
+        st.markdown('##### Average & Standard Deviation Ratings by Weather Conditions')
         avg_std = (df1.loc[:, ['Delivery_person_Ratings', 'Weatherconditions']]
-                   .groupby('Weatherconditions')
-                   .agg({'Delivery_person_Ratings': ['mean', 'std']}))
-        avg_std.columns = ['delivery_mean', 'delivery_std']
+                   .rename(columns={'Weatherconditions': 'Weather Condition'})
+                   .groupby('Weather Condition')
+                   .agg({'Delivery_person_Ratings': ['mean', 'std']})
+                   .round(2))
+        avg_std.columns = ['Average', 'Standard Deviation']
         avg_std.reset_index()
-        st.dataframe(avg_std)
+        avg_std_styled = avg_std.style.background_gradient(cmap='Blues').format(
+            {'Average': '{:.2f}', 'Standard Deviation': '{:.2f}'})
+        st.dataframe(avg_std_styled)
+
 
 with st.container():
     st.markdown("""___""")
@@ -181,10 +194,10 @@ with st.container():
     with col1:
         st.markdown('##### Top 10 Fastest Delivery Drivers by City')
         df3 = top_delivers(df1, top_asc=True)
-        st.dataframe(df3)
+        st.dataframe(df3, hide_index=True)
     with col2:
         st.markdown('##### Top 10 Slowest Delivery Drivers by City')
         df3 = top_delivers(df1, top_asc=False)
-        st.dataframe(df3)
+        st.dataframe(df3, hide_index=True)
 
 

@@ -37,9 +37,13 @@ def orders_by_week_person(df1):
                 .nunique()
                 .reset_index())
     df_aux = pd.merge(df_aux01, df_aux02, how='inner')
-    df_aux['order_by_deliver'] = df_aux['ID'] / df_aux['Delivery_person_ID']
+    df_aux['order_by_delivery_driver'] = (df_aux['ID'] / df_aux['Delivery_person_ID']).round(0)
 
-    fig = px.line(df_aux, x='week_of_year', y='order_by_deliver')
+    fig = px.line(df_aux, x='week_of_year', y='order_by_delivery_driver')
+    fig.update_layout(
+        xaxis_title="Week of the Year",
+        yaxis_title="Order by Delivery Driver"
+    )
     return fig
 
 
@@ -51,10 +55,15 @@ def orders_by_week(df1):
     df_aux = (df1.loc[:, ['ID', 'week_of_year']]
               .groupby('week_of_year')
               .count()
-              .reset_index())
+              .reset_index()
+              .rename(columns={'ID': 'Number_of_Orders'}))
 
     # Line chart - using Plotly
-    fig = px.line(df_aux, x='week_of_year', y='ID')
+    fig = px.line(df_aux, x='week_of_year', y='Number_of_Orders')
+    fig.update_layout(
+        xaxis_title="Week of the Year",
+        yaxis_title="Number of Orders"
+    )
     return fig
 
 
@@ -63,9 +72,14 @@ def orders_by_city_traffic(df1):
     df_aux = (df1.loc[:, ['ID', 'City', 'Road_traffic_density']]
               .groupby(['City', 'Road_traffic_density'])
               .count()
-              .reset_index())
+              .reset_index()
+              .rename(columns={'ID': 'Number_of_Orders'}))
     # Scatter plot
-    fig = px.scatter(df_aux, x='City', y='Road_traffic_density', size='ID', color='City')
+    fig = px.scatter(df_aux, x='City', y='Road_traffic_density', size='Number_of_Orders', color='City')
+    fig.update_layout(
+        xaxis_title="City",
+        yaxis_title="Road Traffic Density"
+    )
     return fig
 
 
@@ -76,11 +90,12 @@ def orders_by_traffic(df1):
               .count()
               .reset_index())
     df_aux = df_aux.loc[df_aux['Road_traffic_density'] != 'NaN', :]
-    df_aux['deliveries_perc'] = df_aux['ID'] / df_aux['ID'].sum()
+    df_aux['%deliveries'] = (df_aux['ID'] / df_aux['ID'].sum()).round(2)
 
     # Pie chart
 
-    fig = px.pie(df_aux, values='deliveries_perc', names='Road_traffic_density')
+    fig = px.pie(df_aux, values='%deliveries', names='Road_traffic_density')
+
     return fig
 
 
@@ -92,9 +107,14 @@ def order_metric(df1):
     df_aux = (df1.loc[:, cols]
               .groupby('Order_Date')
               .count()
-              .reset_index())
+              .reset_index()
+              .rename(columns={'ID': 'Number_of_Orders'}))
     # Chart
-    fig = px.bar(df_aux, x='Order_Date', y='ID')
+    fig = px.bar(df_aux, x='Order_Date', y='Number_of_Orders')
+    fig.update_layout(
+        xaxis_title="Order Date",
+        yaxis_title="Number of Orders"
+    )
     return fig
 
 

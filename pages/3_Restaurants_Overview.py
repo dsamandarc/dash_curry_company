@@ -32,12 +32,14 @@ def avg_std_time_on_traffic(df1):
 
 def avg_std_time_chart(df1):
     cols = ['City', 'Time_taken(min)']
-    df_aux = df1.loc[:, cols].groupby('City').agg({'Time_taken(min)': ['mean', 'std']})
+    df_aux = df1.loc[:, cols].groupby('City').agg({'Time_taken(min)': ['mean', 'std']}).round(0)
     df_aux.columns = ['avg_time', 'std_time']
     df_aux = df_aux.reset_index()
     fig = go.Figure()
     fig.add_trace(go.Bar(name='Control', x=df_aux['City'], y=df_aux['avg_time'],
-                         error_y=dict(type='data', array=df_aux['std_time'])))
+                         error_y=dict(type='data', array=df_aux['std_time']),
+                         marker_color='lightblue'))
+    fig.update_traces(text=df_aux['avg_time'], textposition='auto', textfont=dict(size=14))
     fig.update_layout(barmode='group')
     return fig
 
@@ -84,7 +86,7 @@ def distance(df1, fig):
                                                  haversine((x['Restaurant_latitude'], x['Restaurant_longitude']),
                                                            (x['Delivery_location_latitude'],
                                                             x['Delivery_location_longitude'])), axis=1)
-        avg = df1.loc[:, ['City', 'distance']].groupby('City').mean().reset_index()
+        avg = df1.loc[:, ['City', 'distance']].groupby('City').mean().reset_index().round(0)
         fig = go.Figure(data=[go.Pie(labels=avg['City'], values=avg['distance'], pull=[0, 0.1, 0])])
         return fig
 
@@ -217,28 +219,38 @@ with st.container():
     st.markdown("""___""")
     col1, col2 = st.columns(2, gap='large')
     with col1:
-        st.title("Average delivery time by city")
+        st.title("Average delivery time (min) by city")
         fig = avg_std_time_chart(df1)
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
-        st.title("Average and standard deviation of delivery times by city and type of order")
+        st.title("Average and standard deviation of delivery times (min) by city and type of order")
         cols = ['City', 'Time_taken(min)', 'Type_of_order']
         df_aux = (df1.loc[:, cols]
-                  .groupby(['City', 'Type_of_order'])
-                  .agg({'Time_taken(min)': ['mean', 'std']}))
-        df_aux.columns = ['avg_time', 'std_time']
+                  .rename(columns={'Type_of_order': 'Type of Order'})
+                  .groupby(['City', 'Type of Order'])
+                  .agg({'Time_taken(min)': ['mean', 'std']})
+                  .round(2))
+
+        df_aux.columns = ['Avg Time', 'Std Time']
+
         df_aux = df_aux.reset_index()
-        st.dataframe(df_aux)
+        df_aux_styled = df_aux.style.background_gradient(cmap='Blues').format(
+            {'Avg Time': '{:.2f}', 'Std Time': '{:.2f}'})
+
+        st.dataframe(df_aux_styled, hide_index=True)
 with st.container():
     st.markdown("""___""")
     st.title("Delivery Speed Analysis")
 
     col1, col2 = st.columns(2, gap='large')
     with col1:
+        st.markdown(
+            'When considering the average of all the delivery distances from various cities together, the portion corresponding to each city is:')
         fig = distance(df1, fig=True)
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
+        st.markdown('Sunburst chart (compass rose) to visualize the average and standard deviation of delivery time in different cities and traffic densities:')
         fig = avg_std_time_on_traffic(df1)
         st.plotly_chart(fig, use_container_width=True)
