@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 import datetime
 from PIL import Image
-
+import matplotlib
 
 
 st.set_page_config(page_title='Delivery Drivers Overview', page_icon='🛵', layout='wide')

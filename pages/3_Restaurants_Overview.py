@@ -9,6 +9,7 @@ from streamlit_folium import folium_static
 from PIL import Image
 from haversine import haversine
 import numpy as np
+import matplotlib
 
 st.set_page_config(page_title="Restaurant's Overview", page_icon='🍽️', layout='wide')
 
